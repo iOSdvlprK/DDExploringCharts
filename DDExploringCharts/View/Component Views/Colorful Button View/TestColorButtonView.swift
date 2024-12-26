@@ -18,6 +18,8 @@ struct TestColorButtonView: View {
     @State private var rotateBar: Bool = false
     @State private var tilt: CGFloat = 0.0
     
+    let threshold = 30.0
+    
     var body: some View {
         NavigationStack {
             HStack(alignment: .bottom, spacing: 3) {
@@ -28,6 +30,43 @@ struct TestColorButtonView: View {
                         color: color,
                         barWidth: barWidth,
                         height: height
+                    )
+                    .rotation3DEffect(.degrees(rotateBar ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+                }
+            }
+            .rotation3DEffect(.degrees(-tilt * 45), axis: (x: 0, y: 1, z: 0))
+            .scaleEffect(tilt != 0 ? 0.8 : 1)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        withAnimation {
+                            if value.translation.width > threshold {
+                                tilt = -1
+                            } else if value.translation.width < -threshold {
+                                tilt = 1
+                            } else {
+                                tilt = 0
+                            }
+                        }
+                    }
+            )
+            .onTapGesture {
+                withAnimation {
+                    tilt = 0
+                }
+            }
+            .navigationTitle("Demo")
+            .toolbar {
+                ToolbarItem(placement: .bottomBar) {
+                    ColorfulButtonView(
+                        colors: $colors,
+                        dim: 50,
+                        offset: 10,
+                        action: {
+                            withAnimation {
+                                rotateBar.toggle()
+                            }
+                        }
                     )
                 }
             }
